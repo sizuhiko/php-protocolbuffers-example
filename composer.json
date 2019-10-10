@@ -10,7 +10,9 @@
     ],
     "autoload": {
         "psr-4": {
-            "PhpProtocolBuffersExample\\": "src"
+            "PhpProtocolBuffersExample\\": "src",
+            "GPBMetadata\\": "build/gen/GPBMetadata",
+            "Google\\Protobuf\\Examples\\AddressBook\\": "build/gen/Google/Protobuf/Examples/AddressBook"
         }
     },
     "require": {
@@ -21,6 +23,7 @@
         "psr/http-server-handler": "^1.0",
         "psr/container": "^1.0",
         "league/container": "^3.2",
-        "league/route": "^4.2"
+        "league/route": "^4.2",
+        "google/protobuf": "^3.10"
     }
 }

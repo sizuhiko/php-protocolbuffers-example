@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <title>PHP Protocol Buffers Example</title>
+    <style>
+      form {
+        display: block;
+        padding: 1em;
+      }
+      label {
+        display: block;
+      }
+    </style>
+    <script src="//cdn.rawgit.com/dcodeIO/protobuf.js/6.8.6/dist/protobuf.js"></script>
+  </head>
+  <body>
+    <h1>PHP Protocol Buffers Example</h1>
+    <form name="form" method="post" onsubmit="return sendForm()">
+      <label>名前:<input name="name" type="text"></label>
+      <label>メールアドレス:<input name="email" type="text"></label>
+      <label>電話番号:<input name="phoneNumber" type="text"></label>
+      <label>電話種別:<select name="phoneType">
+        <option></option>
+        <option value="0">携帯</option>
+        <option value="1">自宅</option>
+        <option value="2">会社</option>
+      </select></label>
+      <input type="submit" value="登録">
+    </form>
+    <script>
+      function sendForm() {
+        try {
+          protobuf.load("public/addressbook.proto", function(err, root) {
+            const AddressBook = root.lookupType("Google.Protobuf.Examples.AddressBook.AddressBook");
+            const payload = {
+              people: [
+                {
+                  name: document.form.name.value,
+                  email: document.form.email.value,
+                  phones: [{
+                    number: document.form.phoneNumber.value,
+                    type: parseInt(document.form.phoneType.value)
+                  }]
+                }
+              ]
+            };
+
+            // Verify the payload if necessary (i.e. when possibly incomplete or invalid)
+            const errMsg = AddressBook.verify(payload);
+            if (errMsg) console.log(errMsg);
+            // Create a new message
+            const message = AddressBook.create(payload);
+            
+            fetch('/person', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-protobuf',
+                'X-Accept-Content-Transfer-Encoding': 'base64',
+                'X-Accept-Response-Streaming': 'true'
+              },
+              body: AddressBook.encode(message).finish(),
+            })
+            .then(response => response.text())
+            .then(base64_string => {
+              const buffer = Uint8Array.from(atob(base64_string), c => c.charCodeAt(0))
+              const messageRes = AddressBook.decode(buffer);
+
+              console.log('messageRes', messageRes) // not OK, scrambled code
+            })
+          });
+        } catch (e) {
+          console.log(e);
+        }
+        return false;
+      }
+    </script>
+  </body>
+</html>
